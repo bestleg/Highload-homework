@@ -1,0 +1,73 @@
+{
+	"info": {
+		"_postman_id": "1fd65175-b0e1-4c0e-9472-ee6df0a5542e",
+		"name": "Losyakov-test",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "25761346"
+	},
+	"item": [
+		{
+			"name": "user/get",
+			"request": {
+				"method": "GET",
+				"header": []
+			},
+			"response": []
+		},
+		{
+			"name": "user/register",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"first_name\": \"John\",\n    \"second_name\": \"John\",\n    \"birthdate\": \"2000-02-01\",\n    \"biography\": \"tst\",\n    \"city\": \"Penza\",\n    \"password\":\"slozhnoooo!\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:4444/user/register",
+					"host": [
+						"localhost"
+					],
+					"port": "4444",
+					"path": [
+						"user",
+						"register"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "login",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"id\":\"c8e92697-c093-43a1-8965-b9970026e560\",\n    \"password\":\"slozhnoooo!\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:4444/login",
+					"host": [
+						"localhost"
+					],
+					"port": "4444",
+					"path": [
+						"login"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
