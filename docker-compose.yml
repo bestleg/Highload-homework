@@ -5,7 +5,7 @@ services:
     container_name: postgres_container
     image: postgres
     environment:
-      POSTGRES_DB: ${POSTGRES_DB:-socail}
+      POSTGRES_DB: ${POSTGRES_DB:-social}
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
       DATABASE_HOST: ${DB_HOST:-postgres}
