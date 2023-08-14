@@ -1,0 +1,3 @@
+UPDATE pg_opclass SET opcdefault = true WHERE opcname='gin_trgm_ops';
+
+CREATE INDEX IF NOT EXISTS user_data_search_index ON user_data USING gin (first_name, second_name);

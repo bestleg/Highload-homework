@@ -64,17 +64,17 @@ func New(dsn string, automigrate bool) (*DB, error) {
 
 	return &DB{db}, nil
 }
-func (d *DB) SetTxToContext(ctx context.Context, tx Transactional) context.Context {
+func (db *DB) SetTxToContext(ctx context.Context, tx Transactional) context.Context {
 	return context.WithValue(ctx, dbConnKey, tx)
 }
 
-func (d *DB) Transactional(ctx context.Context, f func(ctx context.Context) error) error {
-	tx, err := d.BeginTx(ctx, &sql.TxOptions{})
+func (db *DB) Transactional(ctx context.Context, f func(ctx context.Context) error) error {
+	tx, err := db.BeginTx(ctx, &sql.TxOptions{})
 	if err != nil {
 		return fmt.Errorf("%w: fail to open transaction", err)
 	}
 
-	ctx = d.SetTxToContext(ctx, tx)
+	ctx = db.SetTxToContext(ctx, tx)
 	if err := f(ctx); err != nil {
 		if txErr := tx.Rollback(); txErr != nil {
 			return fmt.Errorf("%w: fail to rollback transaction", txErr)

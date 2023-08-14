@@ -50,3 +50,20 @@ func (db *DB) GetUserDataByID(userID string) (*UserData, error) {
 
 	return &data, nil
 }
+
+func (db *DB) SearchUserData(firstName, secondName string) ([]*UserData, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), defaultTimeout)
+	defer cancel()
+
+	var data []*UserData
+
+	query := `SELECT *
+		FROM user_data 
+		WHERE first_name LIKE $1 || '%' 
+		  AND second_name LIKE $2 || '%'`
+	if err := db.SelectContext(ctx, &data, query, firstName, secondName); err != nil {
+		return nil, err
+	}
+
+	return data, nil
+}

@@ -118,7 +118,7 @@ func (app *application) getUserByUserID(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	respData := models.OutputUser
+	respData := models.OutputUser{}
 	respData.FirstName = data.FirstName
 	respData.SecondName = data.SecondName
 	respData.City = data.City
@@ -126,6 +126,56 @@ func (app *application) getUserByUserID(w http.ResponseWriter, r *http.Request) 
 	respData.Sex = data.Sex
 	respData.Birthdate = models.JsonBirthDate(data.Birthdate)
 	respData.Age = age.CalculateToNow(data.Birthdate)
+
+	err = response.JSON(w, http.StatusOK, respData)
+	if err != nil {
+		app.serverError(w, r, err)
+	}
+}
+
+func (app *application) searchUser(w http.ResponseWriter, r *http.Request) {
+	input := models.InputUserSearch
+
+	err := request.DecodeJSON(w, r, &input)
+	if err != nil {
+		app.badRequest(w, r, err)
+		return
+	}
+
+	input.Validator.CheckField(input.FirstName != "", "FirstName", "FirstName is required")
+	input.Validator.CheckField(input.SecondName != "", "SecondName", "SecondName is required")
+
+	input.Validator.CheckField(len(input.FirstName) <= 50, "FirstName", "FirstName is too long")
+	input.Validator.CheckField(len(input.SecondName) <= 50, "SecondName", "SecondName is too long")
+
+	if input.Validator.HasErrors() {
+		app.failedValidation(w, r, input.Validator)
+		return
+	}
+
+	usersData, err := app.db.SearchUserData(input.FirstName, input.SecondName)
+	if err != nil {
+		app.serverError(w, r, err)
+		return
+	}
+
+	if len(usersData) == 0 {
+		app.notFound(w, r)
+		return
+	}
+
+	var respData []models.OutputUser
+	for _, userData := range usersData {
+		respData = append(respData, models.OutputUser{
+			FirstName:  userData.FirstName,
+			SecondName: userData.SecondName,
+			Sex:        userData.Sex,
+			Biography:  userData.Biography,
+			City:       userData.City,
+			Birthdate:  models.JsonBirthDate(userData.Birthdate),
+			Age:        age.CalculateToNow(userData.Birthdate),
+		})
+	}
 
 	err = response.JSON(w, http.StatusOK, respData)
 	if err != nil {

@@ -1,0 +1,1 @@
+DROP INDEX IF EXISTS user_data_search_index;
