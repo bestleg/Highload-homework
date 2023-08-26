@@ -36,16 +36,18 @@ type config struct {
 		dsn         string
 		automigrate bool
 	}
-	jwt struct {
+	dbReplicaDSN string
+	jwt          struct {
 		secretKey string
 	}
 }
 
 type application struct {
-	config config
-	db     *database.DB
-	logger *slog.Logger
-	wg     sync.WaitGroup
+	config    config
+	db        *database.DB
+	dbReplica *database.DB
+	logger    *slog.Logger
+	wg        sync.WaitGroup
 }
 
 func run(logger *slog.Logger) error {
@@ -56,6 +58,7 @@ func run(logger *slog.Logger) error {
 	cfg.basicAuth.username = env.GetString("BASIC_AUTH_USERNAME", "admin")
 	cfg.basicAuth.hashedPassword = env.GetString("BASIC_AUTH_HASHED_PASSWORD", "$2a$10$jRb2qniNcoCyQM23T59RfeEQUbgdAXfR6S0scynmKfJa5Gj3arGJa")
 	cfg.db.dsn = env.GetString("DB_DSN", "postgres:postgres@localhost:5432/postgres?sslmode=disable")
+	cfg.dbReplicaDSN = env.GetString("DB_REPLICA_DSN", "postgres:postgres@localhost:5433/postgres?sslmode=disable")
 	cfg.db.automigrate = env.GetBool("DB_AUTOMIGRATE", true)
 	cfg.jwt.secretKey = env.GetString("JWT_SECRET_KEY", "iugey2xd4ctpeaefpnmy3nuvzj6ewsm3")
 
@@ -73,11 +76,17 @@ func run(logger *slog.Logger) error {
 		return err
 	}
 	defer db.Close()
+	dbReplica, err := database.New(cfg.dbReplicaDSN, false)
+	if err != nil {
+		return err
+	}
+	defer dbReplica.Close()
 
 	app := &application{
-		config: cfg,
-		db:     db,
-		logger: logger,
+		config:    cfg,
+		db:        db,
+		dbReplica: dbReplica,
+		logger:    logger,
 	}
 
 	return app.serveHTTP()

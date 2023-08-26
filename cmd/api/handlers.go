@@ -108,7 +108,7 @@ func (app *application) getUserByUserID(w http.ResponseWriter, r *http.Request) 
 		app.badRequest(w, r, fmt.Errorf("wrong uuid format"))
 	}
 
-	data, err := app.db.GetUserDataByID(userID)
+	data, err := app.dbReplica.GetUserDataByID(userID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			app.notFound(w, r)
@@ -153,7 +153,7 @@ func (app *application) searchUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	usersData, err := app.db.SearchUserData(input.FirstName, input.SecondName)
+	usersData, err := app.dbReplica.SearchUserData(input.FirstName, input.SecondName)
 	if err != nil {
 		app.serverError(w, r, err)
 		return

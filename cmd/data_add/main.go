@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"encoding/csv"
+	"fmt"
 	"os"
 	"strconv"
 	"strings"
@@ -28,6 +29,7 @@ func main() {
 	reader := csv.NewReader(file)
 	reader.FieldsPerRecord = 3
 
+	var i int
 	for {
 		record, e := reader.Read()
 		if e == nil {
@@ -47,6 +49,8 @@ func main() {
 				Biography:  "",
 				City:       record[2],
 			})
+			i++
+			fmt.Println(i, firstName, secondName)
 		}
 	}
 

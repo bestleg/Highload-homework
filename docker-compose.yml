@@ -1,23 +1,52 @@
 version: '3.5'
 
 services:
-  postgres:
-    container_name: postgres_container
+  postgres-master:
+    container_name: postgres-master
     image: postgres
     environment:
-      POSTGRES_DB: ${POSTGRES_DB:-social}
+      POSTGRES_DB: ${POSTGRES_DB:-postgres}
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
-      DATABASE_HOST: ${DB_HOST:-postgres}
-      PGDATA: /data/postgres
+      DATABASE_HOST: ${DB_HOST:-postgres-master}
     volumes:
-       - postgres:/data/postgres
+      - ./data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
     networks:
       - default
     restart: unless-stopped
-  
+
+  postgres-replica:
+    container_name: postgres-replica
+    image: postgres
+    environment:
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_DB: postgres
+      POSTGRES_HOST: postgres-master
+    volumes:
+      - ./data-replica:/var/lib/postgresql/data
+    ports:
+      - "5433:5432"
+    networks:
+      - default
+
+  postgres-replica-2:
+    container_name: postgres-replica-2
+    image: postgres
+    environment:
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_DB: postgres
+      POSTGRES_HOST: postgres-master
+    volumes:
+      - ./data-replica-2:/var/lib/postgresql/data
+    ports:
+      - "5434:5432"
+    networks:
+      - default
+
   pgadmin:
     container_name: pgadmin_container
     image: dpage/pgadmin4
@@ -37,7 +66,8 @@ services:
   service:
     container_name: service
     depends_on:
-      - postgres
+      - postgres-master
+      - postgres-replica
     build:
       context: .
       dockerfile: Dockerfile
@@ -49,6 +79,7 @@ services:
     environment:
       LOG_LEVEL: "info"
       DB_DSN: ${DB_DSN}
+      DB_REPLICA_DSN: ${DB_REPLICA_DSN}
 
 
 networks:
@@ -56,5 +87,4 @@ networks:
     driver: bridge
 
 volumes:
-    postgres:
     pgadmin:
