@@ -6,8 +6,8 @@ import (
 	"runtime/debug"
 	"strings"
 
-	"example.com/internal/response"
-	"example.com/internal/validator"
+	"otus-homework/internal/response"
+	"otus-homework/internal/validator"
 
 	"golang.org/x/exp/slog"
 )

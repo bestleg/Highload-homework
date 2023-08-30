@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
@@ -12,13 +13,14 @@ import (
 	"github.com/pascaldekloe/jwt"
 	age "github.com/theTardigrade/golang-age"
 
-	"example.com/internal/database"
-	"example.com/internal/helpers"
-	"example.com/internal/models"
-	"example.com/internal/password"
-	"example.com/internal/request"
-	"example.com/internal/response"
-	"example.com/internal/validator"
+	"otus-homework/internal/database"
+	"otus-homework/internal/helpers"
+	"otus-homework/internal/models"
+	"otus-homework/internal/password"
+	"otus-homework/internal/request"
+	"otus-homework/internal/response"
+	"otus-homework/internal/validator"
+	"otus-homework/internal/worker"
 )
 
 func (app *application) status(w http.ResponseWriter, r *http.Request) {
@@ -33,7 +35,7 @@ func (app *application) status(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *application) createUser(w http.ResponseWriter, r *http.Request) {
-	input := models.InputUser
+	input := models.InputUser{}
 
 	err := request.DecodeJSON(w, r, &input)
 	if err != nil {
@@ -108,7 +110,7 @@ func (app *application) getUserByUserID(w http.ResponseWriter, r *http.Request) 
 		app.badRequest(w, r, fmt.Errorf("wrong uuid format"))
 	}
 
-	data, err := app.dbReplica.GetUserDataByID(userID)
+	data, err := app.db.GetUserDataByID(userID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			app.notFound(w, r)
@@ -134,7 +136,7 @@ func (app *application) getUserByUserID(w http.ResponseWriter, r *http.Request) 
 }
 
 func (app *application) searchUser(w http.ResponseWriter, r *http.Request) {
-	input := models.InputUserSearch
+	input := models.InputUserSearch{}
 
 	err := request.DecodeJSON(w, r, &input)
 	if err != nil {
@@ -153,7 +155,7 @@ func (app *application) searchUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	usersData, err := app.dbReplica.SearchUserData(input.FirstName, input.SecondName)
+	usersData, err := app.db.SearchUserData(input.FirstName, input.SecondName)
 	if err != nil {
 		app.serverError(w, r, err)
 		return
@@ -184,7 +186,7 @@ func (app *application) searchUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *application) createAuthenticationToken(w http.ResponseWriter, r *http.Request) {
-	input := models.InputAuthToken
+	input := models.InputAuthToken{}
 
 	err := request.DecodeJSON(w, r, &input)
 	if err != nil {
@@ -254,6 +256,182 @@ func (app *application) createAuthenticationToken(w http.ResponseWriter, r *http
 	}
 }
 
+func (app *application) addFriend(w http.ResponseWriter, r *http.Request) {
+	authenticatedUser := contextGetAuthenticatedUser(r)
+	params := httprouter.ParamsFromContext(r.Context())
+	friendID := params.ByName("id")
+	if !helpers.IsValidUUID(friendID) {
+		app.badRequest(w, r, fmt.Errorf("wrong uuid format"))
+	}
+	_, err := app.db.GetUserDataByID(friendID)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			app.notFound(w, r)
+			return
+		}
+		app.serverError(w, r, err)
+		return
+	}
+	err = app.db.InsertToUserFriend(r.Context(), database.UserFriend{
+		UserID:       authenticatedUser.UserID,
+		FriendUserID: friendID,
+	})
+	if err != nil {
+		app.serverError(w, r, err)
+		return
+	}
+}
+
+func (app *application) deleteFriend(w http.ResponseWriter, r *http.Request) {
+	authenticatedUser := contextGetAuthenticatedUser(r)
+	params := httprouter.ParamsFromContext(r.Context())
+	friendID := params.ByName("id")
+	if !helpers.IsValidUUID(friendID) {
+		app.badRequest(w, r, fmt.Errorf("wrong uuid format"))
+	}
+	err := app.db.DeleteUserFriendByUserID(authenticatedUser.UserID, friendID)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			app.notFound(w, r)
+			return
+		}
+		app.serverError(w, r, err)
+		return
+	}
+}
+
+func (app *application) createPost(w http.ResponseWriter, r *http.Request) {
+	authenticatedUser := contextGetAuthenticatedUser(r)
+	input := models.InputCreatePost{}
+
+	err := request.DecodeJSON(w, r, &input)
+	if err != nil {
+		app.badRequest(w, r, err)
+		return
+	}
+
+	input.Validator.CheckField(input.Text != "", "text", "Text is required")
+	err = app.db.InsertToUserPosts(r.Context(), database.UserPost{
+		UserID: authenticatedUser.UserID,
+		Post:   input.Text,
+	})
+	if err != nil {
+		app.serverError(w, r, err)
+		return
+	}
+
+	payload := database.Payload{
+		UserID: authenticatedUser.UserID,
+		Post:   input.Text,
+	}
+
+	jsonPayload, err := json.Marshal(payload)
+	if err != nil {
+		app.serverError(w, r, err)
+		return
+	}
+
+	err = app.db.CreateTask(r.Context(), worker.AddPost, string(jsonPayload))
+	if err != nil {
+		app.serverError(w, r, err)
+		return
+	}
+
+}
+
+func (app *application) updatePost(w http.ResponseWriter, r *http.Request) {
+	authenticatedUser := contextGetAuthenticatedUser(r)
+	input := models.InputUpdatePost{}
+
+	err := request.DecodeJSON(w, r, &input)
+	if err != nil {
+		app.badRequest(w, r, err)
+		return
+	}
+
+	input.Validator.CheckField(input.PostID != "", "id", "ID is required")
+	input.Validator.CheckField(input.Text != "", "text", "Text is required")
+	err = app.db.UpdateUserPosts(r.Context(), database.UserPost{
+		ID:     input.PostID,
+		UserID: authenticatedUser.UserID,
+		Post:   input.Text,
+	})
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			app.notFound(w, r)
+			return
+		}
+		app.serverError(w, r, err)
+		return
+	}
+}
+
+func (app *application) deletePost(w http.ResponseWriter, r *http.Request) {
+	authenticatedUser := contextGetAuthenticatedUser(r)
+	params := httprouter.ParamsFromContext(r.Context())
+	postID := params.ByName("id")
+	if !helpers.IsValidUUID(postID) {
+		app.badRequest(w, r, fmt.Errorf("wrong uuid format"))
+	}
+
+	err := app.db.DeleteUserPosts(r.Context(), database.UserPost{
+		Post:   postID,
+		UserID: authenticatedUser.UserID,
+	})
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			app.notFound(w, r)
+			return
+		}
+		app.serverError(w, r, err)
+		return
+	}
+}
+
+func (app *application) getPost(w http.ResponseWriter, r *http.Request) {
+	params := httprouter.ParamsFromContext(r.Context())
+	postID := params.ByName("id")
+	if !helpers.IsValidUUID(postID) {
+		app.badRequest(w, r, fmt.Errorf("wrong uuid format"))
+	}
+
+	post, err := app.db.GetUserPostByPostID(postID)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			app.notFound(w, r)
+			return
+		}
+		app.serverError(w, r, err)
+		return
+	}
+
+	respData := models.OutputPost{}
+	respData.Text = post.Post
+
+	err = response.JSON(w, http.StatusOK, respData)
+	if err != nil {
+		app.serverError(w, r, err)
+	}
+}
+
+func (app *application) getFeed(w http.ResponseWriter, r *http.Request) {
+	authenticatedUser := contextGetAuthenticatedUser(r)
+
+	posts, err := app.cache.Get(authenticatedUser.UserID)
+	if err != nil {
+		app.serverError(w, r, err)
+	}
+
+	respData := []models.OutputPost{}
+	for _, post := range posts {
+		respData = append(respData, models.OutputPost{Text: post})
+	}
+
+	err = response.JSON(w, http.StatusOK, respData)
+	if err != nil {
+		app.serverError(w, r, err)
+	}
+}
 func (app *application) protected(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("This is a protected handler"))
 }

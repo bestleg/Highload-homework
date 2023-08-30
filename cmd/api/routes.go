@@ -19,6 +19,16 @@ func (app *application) routes() http.Handler {
 	mux.HandlerFunc("GET", "/user/get/:id", app.getUserByUserID)
 	mux.HandlerFunc("GET", "/user/search", app.searchUser)
 
+	mux.Handler("PUT", "/friend/set/:id", app.requireAuthenticatedUser(http.HandlerFunc(app.addFriend)))
+	mux.Handler("PUT", "/friend/delete/:id", app.requireAuthenticatedUser(http.HandlerFunc(app.deleteFriend)))
+
+	mux.Handler("POST", "/post/create", app.requireAuthenticatedUser(http.HandlerFunc(app.createPost)))
+	mux.Handler("PUT", "/post/update", app.requireAuthenticatedUser(http.HandlerFunc(app.updatePost)))
+	mux.Handler("PUT", "/post/delete/:id", app.requireAuthenticatedUser(http.HandlerFunc(app.deletePost)))
+	mux.Handler("GET", "/post/get/:id", http.HandlerFunc(app.getPost))
+
+	mux.Handler("GET", "/post/feed", app.requireAuthenticatedUser(http.HandlerFunc(app.getFeed)))
+
 	mux.Handler("GET", "/protected", app.requireAuthenticatedUser(http.HandlerFunc(app.protected)))
 	mux.Handler("GET", "/basic-auth-protected", app.requireBasicAuthentication(http.HandlerFunc(app.protected)))
 

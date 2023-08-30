@@ -10,7 +10,19 @@
 			"name": "user/get",
 			"request": {
 				"method": "GET",
-				"header": []
+				"header": [],
+				"url": {
+					"raw": "localhost:4444/user/get/249a7c2c-afa6-4fd5-8eec-437d54d1c136",
+					"host": [
+						"localhost"
+					],
+					"port": "4444",
+					"path": [
+						"user",
+						"get",
+						"249a7c2c-afa6-4fd5-8eec-437d54d1c136"
+					]
+				}
 			},
 			"response": []
 		},
@@ -64,6 +76,173 @@
 					"port": "4444",
 					"path": [
 						"login"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "user/search",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"first_name\": \"На\",\n    \"last_name\": \"К\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:4444/user/search",
+					"host": [
+						"localhost"
+					],
+					"port": "4444",
+					"path": [
+						"user",
+						"search"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "friend/set",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOi8vbG9jYWxob3N0OjQ0NDQiLCJzdWIiOiI0MjFkMDk0ZS1jOTI4LTQ2MDItOGY5YS0yMTk5YjM1Mjg4YjEiLCJhdWQiOlsiaHR0cDovL2xvY2FsaG9zdDo0NDQ0Il0sImV4cCI6MTY5MzE1NjMyOS4yNjk1MDUzLCJuYmYiOjE2OTMwNjk5MjkuMjY5NTA2NSwiaWF0IjoxNjkzMDY5OTI5LjI2OTUwNn0.o7rBcZORm09cg0kP486Aa8pjuQJQmFznvo8kuDVLcPQ",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [],
+				"url": {
+					"raw": "localhost:4444/friend/set/0c0f2b53-8904-41a9-aa47-a93478cc0c0c",
+					"host": [
+						"localhost"
+					],
+					"port": "4444",
+					"path": [
+						"friend",
+						"set",
+						"0c0f2b53-8904-41a9-aa47-a93478cc0c0c"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "friend/delete",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOi8vbG9jYWxob3N0OjQ0NDQiLCJzdWIiOiI0MjFkMDk0ZS1jOTI4LTQ2MDItOGY5YS0yMTk5YjM1Mjg4YjEiLCJhdWQiOlsiaHR0cDovL2xvY2FsaG9zdDo0NDQ0Il0sImV4cCI6MTY5MzE1NjMyOS4yNjk1MDUzLCJuYmYiOjE2OTMwNjk5MjkuMjY5NTA2NSwiaWF0IjoxNjkzMDY5OTI5LjI2OTUwNn0.o7rBcZORm09cg0kP486Aa8pjuQJQmFznvo8kuDVLcPQ",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [],
+				"url": {
+					"raw": "localhost:4444/friend/delete/0c0f2b53-8904-41a9-aa47-a93478cc0c0c",
+					"host": [
+						"localhost"
+					],
+					"port": "4444",
+					"path": [
+						"friend",
+						"delete",
+						"0c0f2b53-8904-41a9-aa47-a93478cc0c0c"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "post/create",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOi8vbG9jYWxob3N0OjQ0NDQiLCJzdWIiOiJkMjhkOGZlMC1lYmUzLTQwMzctYTJlNy1jNTBjNDllYWUxM2QiLCJhdWQiOlsiaHR0cDovL2xvY2FsaG9zdDo0NDQ0Il0sImV4cCI6MTY5MzUwNTY3Ny41OTk2Mjk5LCJuYmYiOjE2OTM0MTkyNzcuNTk5NjMxLCJpYXQiOjE2OTM0MTkyNzcuNTk5NjMwNH0.gV9qfChwrrWW0FWS6Aj6Cv6boEhvg5luILQazoXprWk",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"text\" : \"add\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:4444/post/create",
+					"host": [
+						"localhost"
+					],
+					"port": "4444",
+					"path": [
+						"post",
+						"create"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "post/feed",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOi8vbG9jYWxob3N0OjQ0NDQiLCJzdWIiOiJkMjhkOGZlMC1lYmUzLTQwMzctYTJlNy1jNTBjNDllYWUxM2QiLCJhdWQiOlsiaHR0cDovL2xvY2FsaG9zdDo0NDQ0Il0sImV4cCI6MTY5MzUwNTY3Ny41OTk2Mjk5LCJuYmYiOjE2OTM0MTkyNzcuNTk5NjMxLCJpYXQiOjE2OTM0MTkyNzcuNTk5NjMwNH0.gV9qfChwrrWW0FWS6Aj6Cv6boEhvg5luILQazoXprWk",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"text\" : \"add\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:4444/post/create",
+					"host": [
+						"localhost"
+					],
+					"port": "4444",
+					"path": [
+						"post",
+						"create"
 					]
 				}
 			},

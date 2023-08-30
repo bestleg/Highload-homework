@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"time"
 
-	"example.com/assets"
+	"otus-homework/assets"
 
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/source/iofs"

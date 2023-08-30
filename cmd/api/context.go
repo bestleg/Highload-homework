@@ -4,7 +4,7 @@ import (
 	"context"
 	"net/http"
 
-	"example.com/internal/database"
+	"otus-homework/internal/database"
 )
 
 type contextKey string

@@ -1,14 +1,14 @@
 package models
 
-import "example.com/internal/validator"
+import "otus-homework/internal/validator"
 
-var InputUserSearch struct {
+type InputUserSearch struct {
 	FirstName  string              `json:"first_name"`
 	SecondName string              `json:"last_name"`
 	Validator  validator.Validator `json:"-"`
 }
 
-var InputUser struct {
+type InputUser struct {
 	Password   string              `json:"password"`
 	FirstName  string              `json:"first_name"`
 	SecondName string              `json:"second_name"`
@@ -19,7 +19,7 @@ var InputUser struct {
 	Validator  validator.Validator `json:"-"`
 }
 
-var InputAuthToken struct {
+type InputAuthToken struct {
 	UserID    string              `json:"id"`
 	Password  string              `json:"password"`
 	Validator validator.Validator `json:"-"`
